@@ -2,14 +2,14 @@
 layout: page
 title: "Snips"
 description: "Instructions on how to integrate Snips within Home Assistant."
-date: 2017-06-22 12:00
+date: 2018-03-22 12:00
 sidebar: true
 comments: false
 sharing: true
 footer: true
 logo: snips.png
 ha_category: Voice
-ha_release: 0.48
+ha_release: 0.65
 ---
 
 The [Snips Voice Platform](https://www.snips.ai) allows users to add powerful voice assistants to their Raspberry Pi devices without compromising on privacy. It runs 100% on-device, and does not require an internet connection. It features Hotword Detection, Automatic Speech Recognition (ASR), Natural Language Understanding (NLU) and Dialog Management.
@@ -27,22 +27,15 @@ Snips takes voice or text as input and produces *intents* as output, which are e
 
 ### {% linkable_title Installation %}
 
-The Snips platform can be installed via the Snips APT/Debian repository. If you prefer to install the platform using the Docker distribution, check out our [Docker Installation Guide](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#using-docker).
+All of the Snips installation documentation can be found at [
 
-```bash
-$ sudo apt-get update
-$ sudo apt-get install -y dirmngr
-$ sudo bash -c  'echo "deb https://raspbian.snips.ai/$(lsb_release -cs) stable main" > /etc/apt/sources.list.d/snips.list'
-$ sudo apt-key adv --keyserver pgp.mit.edu --recv-keys D4F50CDCA10A2849
-$ sudo apt-get update
-$ sudo apt-get install -y snips-platform-voice
-```
+[Raspberry Pi](https://github.com/snipsco/snips-platform-documentation/wiki/1.-Setup-the-Snips-Voice-Platform#1-snips-platform-for-raspberry-pi-3-with-raspbian-stretch)
 
-Note: if the keyserver pgp.mit.edu is down try to use another one in the 4th line , like pgp.surfnet.nl:
+Unfortunately, only Debian Jessie is supported at this time.
+[Debian/AMD64](https://github.com/snipsco/snips-platform-documentation/wiki/1.-Setup-the-Snips-Voice-Platform#2-snips-platform-installation-on-debianamd64)
 
-```bash
-sudo apt-key adv --keyserver pgp.surfnet.nl --recv-keys D4F50CDCA10A2849
-```
+Docker supports both AMD64 and ARM architechtures
+[Docker](https://github.com/snipsco/snips-platform-documentation/wiki/6.--Miscellaneous#using-docker)
 
 ### {% linkable_title Creating an assistant %}
 
@@ -52,31 +45,17 @@ sudo apt-key adv --keyserver pgp.surfnet.nl --recv-keys D4F50CDCA10A2849
 
 Head over to the [Snips Console](https://console.snips.ai) to create your assistant. Launch the training and download by clicking on the "Download Assistant" button.
 
-The next step is to get the assistant to work on your device. Unzip and copy the assistant folder that you downloaded from the web console to the path. Assuming your downloaded assistant folder is on your desktop, just run:
+The next step is to get the assistant to work on your device. Assuming your downloaded assistant folder is on your desktop (your assistant name will vary), just run:
 
 ```bash
-$ scp -r ~/Desktop/assistant pi@<raspi_hostname.local_or_IP>:/home/pi/.
+$ scp -r ~/Desktop/assistant.zip pi@<raspi_hostname.local_or_IP>:/home/pi/.
 ```
 
 Now ssh into your Raspberry Pi:
 
 ```bash
 $ ssh pi@<raspi_hostname.local_or_IP>
-```
-
-By default, this command is `ssh pi@raspberrypi.local`, if you are using the default Raspberry Pi hostname.
-
-Then, move the assistant to the right folder:
-
-```bash
-(pi) $ sudo mv /home/pi/assistant /usr/share/snips/assistant
-```
-
-Note: if you already have an assistant installed and wish to replace it, start by removing the previous one, and then move the new one in its place:
-
-```bash
-(pi) $ sudo rm -r /usr/share/snips/assistant
-(pi) $ sudo mv /home/pi/assistant /usr/share/snips/assistant
+unzip -o -d /usr/share/snips /home/pi/assistant.zip
 ```
 
 ### {% linkable_title Running Snips %}
@@ -86,7 +65,7 @@ Make sure that a microphone is plugged to the Raspberry Pi. If you are having tr
 Start the Snips Voice Platform by starting the `snips-*` services:
 
 ```bash
-$ sudo systemctl start "snips-*"
+$ sudo systemctl start 'snips-*'
 ```
 
 Snips is now ready to take voice commands from the microphone. To trigger the listening, simply say
@@ -95,7 +74,7 @@ Snips is now ready to take voice commands from the microphone. To trigger the li
 
 followed by a command, e.g.
 
-> Set the lights to green in the living room
+> Turn on the living room lights
 
 As the Snips Platform parses this query into an intent, it will be published on MQTT, on the `hermes/intent/<intentName>` topic. The Snips Home Assistant component subscribes to this topic, and handles the intent according to the rules defined in `configuration.yaml`, as explained below.
 
@@ -115,12 +94,12 @@ mqtt:
   port: MQTT_BROKER_PORT
 ```
 
-By default, Snips runs an MQTT broker on port 9898. So if we wish to use this broker, and if Snips and Home Assistant run on the same device, the entry will look as follows:
+By default, Snips runs a mosquitto broker on port 1883. So if we wish to use this broker, and if Snips and Home Assistant run on the same device, the entry will look as follows:
 
 ```yaml
 mqtt:
   broker: 127.0.0.1
-  port: 9898
+  port: 1883
 ```
 
 Alternatively, MQTT can be configured to bridge messages between servers if using a custom MQTT broker such as [mosquitto](https://mosquitto.org/).
@@ -134,37 +113,15 @@ In Home Assistant, we trigger actions based on intents produced by Snips using t
 snips:
 
 intent_script:
-  ActivateLightColor:
+  TurnOn:
     action:
       - service: light.turn_on
         data_template:
           entity_id: light.{{ objectLocation | replace(" ","_") }}
-          color_name: {{ objectColor }}
 ```
 {% endraw %}
 
 In the `data_template` block, we have access to special variables, corresponding to the slot names for the intent. In the present case, the `ActivateLightColor` has two slots, `objectLocation` and `objectColor`.
-
-### {% linkable_title Special slots %}
-
-In the above example, the slots are plain strings. However, when more complex types are used, such as dates or time ranges, they will be transformed to rich Python objects, for example:
-
-{% raw %}
-```yaml
-SetTimer:
-  speech:
-    type: plain
-    text: weather
-  action:
-    service: script.set_timer
-    data_template:
-      name: "{{ timer_name }}"
-      duration: "{{ timer_duration }}"
-      seconds: "{{ slots.timer_duration.value.seconds }}"
-      minutes: "{{ slots.timer_duration.value.minutes }}"
-      hours: "{{ slots.timer_duration.value.hours }}"
-```
-{% endraw %}
 
 ### Sending TTS Notifications
 
