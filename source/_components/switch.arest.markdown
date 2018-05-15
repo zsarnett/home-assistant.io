@@ -46,6 +46,7 @@ Configuration variables:
 - **name** (*Optional*): Let you overwrite the name of the device. By default *name* from the device is used.
 - **pins** array (*Optional*): An array with all used pins.
   - **name** (*Required*): The name of the pin to use in the frontend.
+  - **invert** (*Optional*): Invert the on/off logic for this pin. 1 = off and 0 = on
 
 or 
 
