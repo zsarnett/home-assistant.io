@@ -146,7 +146,7 @@ system_log:
   fire_event: true
 ```
 
-you can create an automation to receive notifications on Facebox errors:
+You can create an automation to receive notifications on Facebox errors:
 
 {% raw %}
 ```yaml
