@@ -42,6 +42,14 @@ zha:
   database_path: /config/zigbee.db
 ```
 
+### {% linkable_title Finding the path %}
+
+If the above defaults don't work, you can check what hardware has been found using the [hassio command](/hassio/commandline/#hardware):
+
+```bash
+$ hassio hardware info
+```
+
 ## {% linkable_title Further reading %}
 
 For more information on using Z-Wave, see the [main documentation](/docs/z-wave/).
