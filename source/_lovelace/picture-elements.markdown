@@ -1,12 +1,12 @@
 ---
 title: "Picture Elements Card"
 sidebar_label: Picture Elements
-description: "Picture elements card is one of the most versatile types of cards"
+description: "The Picture Elements card is one of the most versatile types of cards. The card allow you to position icons or text and even services! On an image based on coordinates."
 ---
 
-Picture elements card is one of the most versatile types of cards.
+The Picture Elements card is one of the most versatile types of cards.
 
-The cards allow you to position icons or text and even services! On an image based on coordinates. Imagine floor plan, imagine [picture-glance](/lovelace/picture-glance/) with no restrictions!
+The card allow you to position icons or text and even services! On an image based on coordinates. Imagine floor plan, imagine [picture-glance](/lovelace/picture-glance/) with no restrictions!
 
 <p class='img'>
   <img src='/images/lovelace/lovelace_picture_elements.gif' alt='A functional floorplan powered by picture elements'>
